@@ -1,0 +1,279 @@
+import { Request, Response } from "express";
+import User from "../models/userModal.ts";
+import { AppError } from "../utils/AppError";
+import { z } from "zod";
+import nodemailer from 'nodemailer'
+import { OAuth2Client } from "google-auth-library";
+
+const signUpSchema = z.object({
+  name: z.string().min(1, "name is required"),
+  email: z.string().email("Invalid Email"),
+  password: z.string().min(6, "password must be atleast 6 characters"),
+});
+
+const userEmailSignUp = async (req: Request, res: Response) => {
+  try {
+    const parsed = signUpSchema.safeParse(req.body);
+    if (!parsed.success) {
+      const errors = parsed.error.format();
+      throw new AppError("Validation failed", 404, errors);
+    }
+    const { name, email, password } = parsed.data;
+    const isEmailExist = await User.findOne({ email });
+    if (isEmailExist && !isEmailExist.googleId) {
+      throw new AppError("This email already exist, try another email", 403);
+    } else if (isEmailExist && isEmailExist.googleId) {
+      throw new AppError(
+        "This Email is registered with Google,Please login with google",
+        403
+      );
+    }
+
+    const newUser = await User.create({
+      name,
+      password,
+      email,
+    });
+
+    const token = await newUser.generateToken();
+
+    return res.status(201).json({
+      success: true,
+      message: "User created successfully",
+      data: {
+        userId: newUser._id,
+        name: newUser.name,
+        token,
+        tokenExpiresIn: "1d",
+      },
+    });
+  } catch (error: any) {
+    throw new AppError("userEmail Signup Error", 500, error.message);
+  }
+};
+
+const loginschema = z.object({
+  email: z.string().email("Email is invalid"),
+  password: z.string().min(6, "Password must be 6 character long"),
+});
+
+const userEmailSignIn = async (req: Request, res: Response) => {
+  try {
+    const parsed = loginschema.safeParse(req.body);
+
+    if (!parsed.success) {
+      const errors = parsed.error.format();
+      throw new AppError("login validation failed", 400, errors);
+    }
+
+    const { email, password } = parsed.data;
+
+    const user = await User.findOne({ email });
+    if (!user) {
+      throw new AppError("Invalid credentials", 400);
+    }
+    if (user && user.googleId) {
+      throw new AppError(
+        "This email is already present with Google, Please login with google",
+        403
+      );
+    }
+
+    const checkPassword = await user.checkPassword(password);
+    if (!checkPassword) {
+      throw new AppError("Invalid credentials", 400);
+    }
+
+    const token = await user?.generateToken();
+    return res.status(201).json({
+      success: true,
+      message: "User LoggedIn successfully",
+      data: {
+        userId: user._id,
+        name: user.name,
+        token,
+        tokenExpiresIn: "1d",
+      },
+    });
+  } catch (error: any) {
+    throw new AppError("userEmail Login Error", 500, error.message);
+  }
+};
+
+const resetPasswordSchema = z.object({
+  oldPassword: z.string().min(6, "Password must be at least 6 characters"),
+  newPassword: z.string().min(6, "Password must be at least 6 characters"),
+});
+
+const resetPassword = async (req: Request, res: Response) => {
+  try {
+    const userEmail = req.user!.email;
+    const parsed = resetPasswordSchema.safeParse(req.body);
+
+    if (!parsed.success) {
+      const errors = parsed.error.format();
+      throw new AppError("Invalid format", 400, errors);
+    }
+
+    const { oldPassword, newPassword } = parsed.data;
+
+    const user = await User.findOne({ email: userEmail });
+    if (!user) {
+      throw new AppError("Invalid credentials", 400);
+    }
+    if(user && user.googleId){
+        throw new AppError("You are not authorized to reset password,Please user login")
+    }
+
+    const isPasswordCorrect = await user.checkPassword(oldPassword);
+    if (!isPasswordCorrect) {
+      throw new AppError("Old Password is incorrect", 400);
+    }
+  
+    user.password = newPassword
+    await user.save()
+    return res.status(200).json({
+        success:true,
+        message:"User Pasword updated successfully"
+    })
+  } catch (error:any) {
+    throw new AppError("Reset Password Error", 500, error.message);
+  }
+};
+
+const transporter = nodemailer.createTransport({
+  host: "smtp.ethereal.email",
+  port: 587,
+  secure: false, // true for 465, false for other ports
+  auth: {
+    user: process.env.NODE_MAILER_ID,
+    pass: process.env.NODE_MAILER_PASSWORD,
+  },
+});
+
+const forgotPassword=async(req:Request,res:Response)=>{
+    try {
+        const {email} = req.body
+        const now = Date.now()
+        const RESEND_INTERVAL=5*60*1000
+
+        
+
+        const user = await User.findOne({email})
+        if(!user){
+            throw new AppError("User not found for provided email", 400);
+        }
+        if(user?.otpLastSent && now- user?.otpLastSent.getTime() < RESEND_INTERVAL){
+            const remaining = Math.ceil((RESEND_INTERVAL - (now-user.otpLastSent.getTime()))/1000)
+            throw new AppError(`Please wait ${remaining} seconds before resending the otp`,429)
+        }
+
+        if(user.googleId){
+            throw new AppError("This email is already login with Google, please Login with Google", 400);
+        }
+
+        const otp = Math.floor(100000+Math.random()*900000)
+        user.otp = otp.toString()
+        user.otpExpiresAt = new Date(Date.now()+5*60*1000)
+        user.otpLastSent=new Date(Date.now())
+        await user.save()
+
+        const nodemailerOptions = {
+            from:`Expense Tracker <${process.env.NODE_MAILER_ID}>`,
+            to:email,
+            subject:"Password Reset OTP",
+            text:`Your OTP for password is ${otp}: It is valid for 5 minutes`,
+            html:`<p>Your OTP for password reset is: <b>${otp}</b></p><p>It is valid for 5 minutes.</p>`
+        }
+
+        await transporter.sendMail(nodemailerOptions)
+
+        return res.status(200).json({
+            success:true,
+            message:'OTP sent succesfully on given email'
+        })
+    } catch (error:any) {
+        throw new AppError("Forgot Password Error", 500, error.message);
+    }
+}
+
+const resetPasswordOTPSchema = z.object({
+    email:z.string().email("Invalid Email"),
+    otp:z.string().min(6,"Minimum 6 digits required"),
+    newPassword:z.string().min(6,"atleast 6 character required")
+})
+const resetPasswordWithOTP=async(req:Request,res:Response)=>{
+    try {
+        
+        const parsed = resetPasswordOTPSchema.safeParse(req.body)
+        if(!parsed.success){
+            throw new AppError("Invalid request", 400);
+        }
+        const {email,otp,newPassword} = parsed.data
+
+        const user = await User.findOne({email})
+        if(!user){
+            throw new AppError("User not found for provided email", 400);
+        }
+        if(user.googleId){
+            throw new AppError("This email is already present with Google, Please login with Google to continue", 400);
+        }
+
+        if(!user.otp || !user.otpExpiresAt){
+            throw new AppError("OTP not received", 400);
+        }
+
+        const otpCheck = otp === user.otp
+        const otpNotExpired = user.otpExpiresAt.getTime() < Date.now()
+
+        if(!otpCheck || otpNotExpired){
+            throw new AppError("OTP is invalid or expired", 400);
+        }
+
+        user.password=newPassword
+        user.otp=null
+        user.otpExpiresAt=null
+        
+
+        await user.save()
+
+        return res.status(200).json({
+            success:true,
+            message:"Password updated successfully"
+        })
+    } catch (error:any) {
+        throw new AppError("Reset Password OTP Error", 500, error.message);
+    }
+}
+
+const googleAuth = async(req:Request,res:Response)=>{
+    try {
+        const client = new OAuth2Client(process.env.GOOGLE_CLIENT_ID)
+
+        const {idToken} = req.body
+        if(!idToken){
+            throw new AppError("Google Id Token required", 400);
+        }
+
+        // verify Token
+        const ticket = await client.verifyIdToken({
+            idToken,
+            audience:process.env.GOOGLE_CLIENT_ID
+        })
+
+        const payload = ticket.getPayload()
+
+        if(!payload || !payload.email_verified){
+            throw new AppError("Invalid Google Id Token", 400);
+        }
+
+        const {email,picture,sub,name} = payload
+
+        const user = await User.findOne({email})
+        if(user && !user.googleId){
+            throw new AppError("User already exist with password", 400);
+        }
+    } catch (error) {
+        throw new AppError("Google Auth Error", 500);
+    }
+}
