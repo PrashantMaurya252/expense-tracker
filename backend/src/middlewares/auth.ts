@@ -3,7 +3,7 @@ import { AppError } from "../utils/AppError.ts";
 import jwt from "jsonwebtoken";
 import User, { IUser } from "../models/userModal.ts";
 
-const verifyUser = async (req: Request, res: Response, next: NextFunction) => {
+export const verifyUser = async (req: Request, res: Response, next: NextFunction) => {
   try {
     const token = req.headers.authorization?.split(" ")[1];
     if (!token) {
@@ -21,17 +21,17 @@ const verifyUser = async (req: Request, res: Response, next: NextFunction) => {
 
     const user = await User.findOne({ email: decoded.email }) as IUser;
     if (!user) {
-      throw new AppError("User not found", 401);
+      throw new AppError("Unauthorized", 401);
     }
 
     const payload = {
-      userId: user._id.toString(),
+      userId: user._id,
       email: user.email,
     };
 
     req.user = payload;
     next();
-  } catch (error) {
-    throw new AppError("Unauthorized", 401);
+  } catch (error:any) {
+    throw new AppError("Unauthorized", 401,error.message);
   }
 };

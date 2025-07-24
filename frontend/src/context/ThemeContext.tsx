@@ -17,9 +17,22 @@ export const ThemeProvider = ({children}:{children:React.ReactNode})=>{
         setThemeType(newTheme)
         localStorage.setItem("theme",newTheme)
     }
-    useEffect(()=>{
-        document.documentElement.className=`theme-${theme}`
-    },[theme])
+    // useEffect(()=>{
+    //     document.documentElement.className=`theme-${theme}`
+    // },[theme])
+
+    useEffect(() => {
+    const themeClasses = [
+        "theme-light",
+        "theme-dark",
+        "theme-cupcake",
+        "theme-cyberpunk",
+        "theme-dracula",
+        "theme-forest"
+    ];
+    document.documentElement.classList.remove(...themeClasses);
+    document.documentElement.classList.add(`theme-${theme}`);
+}, [theme]);
 
     return (
         <ThemeContext.Provider value={{theme,setTheme}}>

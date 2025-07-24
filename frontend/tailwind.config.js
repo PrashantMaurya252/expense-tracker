@@ -1,12 +1,11 @@
-// tailwind.config.js
-import { themes } from 'tailwindcss-themes'
+const { themes } = require('tailwindcss-themes');
 
-export default {
+module.exports = {
   content: ["./index.html", "./src/**/*.{js,ts,jsx,tsx}"],
   theme: {
     extend: {
       colors: {
-        primary: "var(--color-bg)",
+        primary: "var(--color-primary)",
         secondary: "var(--color-secondary)",
         accent: "var(--color-accent)",
       },
@@ -20,9 +19,9 @@ export default {
         'cupcake',
         'cyberpunk',
         'dracula',
-        'forest'
+        'forest',
       ],
-      className: 'theme',
+      className: 'theme-',
     }),
   ],
 };

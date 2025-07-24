@@ -6,6 +6,7 @@ export interface Expense{
     category:string,
     description:string | null,
     amount:number,
+    date:Date | null
 }
 
 export const expenseCategories = ["Travel","Food","Rent&Bills","Shopping","Others"] as const
@@ -33,6 +34,10 @@ const expenseSchema = new mongoose.Schema<Expense>({
         type:Number,
         required:true,
         min:[0,"amount must be positive"]
+    },
+    date:{
+        type:Date,
+        default:Date.now()
     }
 },{timestamps:true})
 

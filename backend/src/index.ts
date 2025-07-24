@@ -9,10 +9,28 @@ import rateLimit from "express-rate-limit";
 import winston from "winston";
 import morgan from 'morgan'
 import createHttpError from "http-errors";
+import http from 'http'
+import { Server } from "socket.io";
 
 dotenv.config();
 
 const app = express();
+const server = http.createServer(app)
+
+const io = new Server(server,{
+  cors:{
+    origin:"*"
+  }
+})
+
+io.on("connection",(socket)=>{
+  console.log("User Connected",socket.id)
+  socket.on("join",(userId)=>{
+    socket.join(userId)
+  })
+})
+
+export {io}
 
 app.use(cors());
 app.use(express.json());
