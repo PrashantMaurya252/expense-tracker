@@ -1,5 +1,5 @@
 import dotenv from "dotenv";
-import express, { NextFunction, Request, Response } from "express";
+import express, { ErrorRequestHandler, NextFunction, Request, Response } from "express";
 import cors from "cors";
 import connectToDB from "./utils/db";
 import helmet from "helmet";
@@ -11,6 +11,7 @@ import morgan from 'morgan'
 import createHttpError from "http-errors";
 import http from 'http'
 import { Server } from "socket.io";
+import { errorHandler } from "./middlewares/errorHandler";
 
 dotenv.config();
 
@@ -31,7 +32,7 @@ io.on("connection",(socket)=>{
 })
 
 export {io}
-
+app.use(errorHandler as ErrorRequestHandler)
 app.use(cors());
 app.use(express.json());
 app.use(helmet());

@@ -11,7 +11,7 @@ const signUpSchema = z.object({
   password: z.string().min(6, "password must be atleast 6 characters"),
 });
 
-export const userEmailSignUp = async (req: Request, res: Response) => {
+export const userEmailSignUp = async (req: Request, res: Response):Promise<void> => {
   try {
     const parsed = signUpSchema.safeParse(req.body);
     if (!parsed.success) {
@@ -37,7 +37,7 @@ export const userEmailSignUp = async (req: Request, res: Response) => {
 
     const token = await newUser.generateToken();
 
-    return res.status(201).json({
+      res.status(201).json({
       success: true,
       message: "User created successfully",
       data: {
@@ -73,7 +73,7 @@ const loginschema = z.object({
   password: z.string().min(6, "Password must be 6 character long"),
 });
 
-export const userEmailSignIn = async (req: Request, res: Response) => {
+export const userEmailSignIn = async (req: Request, res: Response):Promise<void> => {
   try {
     const parsed = loginschema.safeParse(req.body);
 
@@ -101,7 +101,7 @@ export const userEmailSignIn = async (req: Request, res: Response) => {
     }
 
     const token = await user?.generateToken();
-    return res.status(201).json({
+     res.status(201).json({
       success: true,
       message: "User LoggedIn successfully",
       data: {
