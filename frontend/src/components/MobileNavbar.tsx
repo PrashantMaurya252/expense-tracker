@@ -34,9 +34,9 @@ const MobileNavbar = () => {
       url: isLogin ? "/profile" : "/auth",
       type: "public",
       icon: isLogin ? (
-        "icon-[material-symbols--login]"
-      ) : (
         "icon-[mdi--user]"
+      ) : (
+        "icon-[material-symbols--login]"
       ),
     },
   ];
@@ -46,23 +46,23 @@ const MobileNavbar = () => {
       initial={{ y: -80, opacity: 0 }}
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, type: "spring" }}
-      className="bg-primary text-accent shadow-md px-6 py-4 flex justify-between items-center w-full"
+      className="bg-primary text-accent shadow-md px-2-6 py-1 flex justify-between items-center w-full"
       //   style={{ background: "var(--color-bg)", color: "var(--color-accent)" }} // Add this line
     >
       {/* <div className="text-2xl font-bold tracking-wider">
         <span className="text-accent bg-secondary">⚡</span> Expense Tracker
       </div> */}
 
-      <div className="flex justify-between w-full">
+      <div className="flex justify-around w-full">
         {options.map((item) => (
           <NavLink
             key={item.id}
             to={item.url}
             className={({ isActive }) =>
-              `relative px- py-1 text-base font-medium transition-colors duration-300 ${
+              `relative px-2 py-1 text-base font-medium transition-colors duration-300 ${
                 isActive
                   ? "text-accent underline underline-offset-4"
-                  : "hover:text-accent hover:bg-blue-700 hover:text-white hover:font-bold"
+                  : "hover:bg-blue-700 hover:text-white hover:font-bold"
               }`
             }
           >
@@ -73,10 +73,10 @@ const MobileNavbar = () => {
               whileHover={{ scale: 1.1 }}
               whileTap={{ scale: 0.95 }}
               transition={{ type: "spring", stiffness: 300 }}
-              className="flex flex-col justify-center items-center gap-2"
+              className="flex flex-col justify-center items-center gap-1"
             >
               <span className={`${item.icon} text-2xl`}></span>
-              <span className="font-semibold text-lg">{item.title}</span>
+              <span className="font-semibold text-sm">{item.title}</span>
               
               
             </motion.span>

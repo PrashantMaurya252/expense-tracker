@@ -14,7 +14,7 @@ function App() {
   
 
   return (
-    <div className="w-full">
+    <div className="w-full relative min-h-screen">
       <Navbar/>
       <Routes>
         <Route path="/auth" element={<Authentication/>}/>
@@ -23,7 +23,7 @@ function App() {
         <Route path="/dashboard" element={<Dashboard/>}/>
         <Route path="/profile" element={<Profile/>}/>
       </Routes>
-      <div className="absolute bottom-0 md:hidden w-full">
+      <div className="fixed bottom-0 md:hidden w-full">
         <MobileNavbar/>
       </div>
       
