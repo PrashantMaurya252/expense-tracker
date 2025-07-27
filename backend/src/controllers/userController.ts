@@ -52,6 +52,22 @@ export const userEmailSignUp = async (req: Request, res: Response) => {
   }
 };
 
+export const verification =async(req:Request,res:Response)=>{
+  try {
+    const email = req.body
+    const user = await User.find({email}).select("-password")
+    if(!user){
+      return res.status(404).json({success:false,message:"User not found"})
+    }
+    res.status(200).json({
+      success:true,
+      user
+    })
+  } catch (error:any) {
+    throw new AppError("user verification error",500,error.message)
+  }
+}
+
 const loginschema = z.object({
   email: z.string().email("Email is invalid"),
   password: z.string().min(6, "Password must be 6 character long"),

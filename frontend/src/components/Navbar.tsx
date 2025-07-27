@@ -2,13 +2,14 @@
 import { NavLink } from "react-router-dom";
 import { motion } from "framer-motion";
 import ThemeSwitcher from "./ThemeSwitcher";
+// import ThemeSwitcher from "./ThemeSwitcher";
 
 const Navbar = () => {
   const isLogin = true;
 
   const options = [
     { id: 1, title: "Home", url: "/", type: "public" },
-    { id: 2, title: "Tasks", url: "/tasks", type: "private" },
+    { id: 2, title: "Expenses", url: "/expenses", type: "private" },
     { id: 3, title: "Dashboard", url: "/dashboard", type: "private" },
     {
       id: 4,
@@ -24,10 +25,10 @@ const Navbar = () => {
       animate={{ y: 0, opacity: 1 }}
       transition={{ duration: 0.6, type: "spring" }}
       className="bg-primary text-accent shadow-md px-6 py-4 flex justify-between items-center"
-    //   style={{ background: "var(--color-bg)", color: "var(--color-accent)" }} // Add this line
+      //   style={{ background: "var(--color-bg)", color: "var(--color-accent)" }} // Add this line
     >
       <div className="text-2xl font-bold tracking-wider">
-        <span className="text-accent">⚡</span> Expense Tracker
+        <span className="text-accent bg-secondary">⚡</span> Expense Tracker
       </div>
 
       <div className="hidden md:flex gap-6">
@@ -52,9 +53,9 @@ const Navbar = () => {
             </motion.span>
           </NavLink>
         ))}
-        <span>
+        {/* <span>
             <ThemeSwitcher/>
-        </span>
+        </span> */}
       </div>
     </motion.nav>
   );
