@@ -1,3 +1,5 @@
+"use client"
+
 import axios from "axios";
 import React, {
   createContext,
@@ -26,12 +28,11 @@ const userContext = createContext<userContextTypes | null>(null);
 
 export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const [user, setUser] = useState<User | null>(null);
-  const [token, setToken] = useState<string>(
-    () => (localStorage.getItem("token") as string) || ""
-  );
+  const [token, setToken] = useState<string>("");
   const [isLoggedIn, setIsLoggedIn] = useState<boolean>(false);
 
   useEffect(() => {
+    if (typeof window !== "undefined"){
     const localUser = localStorage.getItem("user");
     if (token && localUser) {
       setUser(JSON.parse(localUser));
@@ -40,9 +41,11 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       setUser(null);
       setIsLoggedIn(false);
     }
+  }
   }, [token]);
 
   useEffect(() => {
+    if (typeof window !== "undefined"){
     const verifyToken = async () => {
       const userToken = localStorage.getItem("token");
       if (!userToken) return;
@@ -64,7 +67,9 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         logout()
       }
     };
+  
     verifyToken()
+    }
   }, []);
 
   const login = async (email: string, password: string) => {
@@ -73,6 +78,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         `${process.env.BACKEND_URI}/api/login`,
         { email, password }
       );
+      if (typeof window !== "undefined"){
       if (response.data.success) {
         localStorage.setItem("token", response.data.token);
         localStorage.setItem("user", JSON.stringify(response.data.user));
@@ -86,6 +92,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         localStorage.removeItem("token");
         localStorage.removeItem("user");
       }
+    }
     } catch (error) {
       console.log("Login Error", error);
     }
@@ -93,11 +100,13 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
 
   const logout = async () => {
     try {
+      if (typeof window !== "undefined"){
       setToken("");
       setUser(null);
       localStorage.removeItem("token");
       localStorage.removeItem("user");
       setIsLoggedIn(false);
+      }
     } catch (error) {
       console.log("logout error", error);
     }
@@ -119,7 +128,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   );
 };
 
-const useAuth = () => {
+export const useAuth = () => {
   const context = useContext(userContext);
   if (!context) throw new Error("useAuth must be inside UserProvider");
   return context;
