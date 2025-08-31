@@ -9,7 +9,7 @@ export interface Expense{
     date:Date | null
 }
 
-export const expenseCategories = ["Travel","Food","Rent&Bills","Shopping","Others"] as const
+export const expenseCategories = ["Travel","Food","Rent&Bills","Shopping","Others","Grocery"] as const
 
 const expenseSchema = new mongoose.Schema<Expense>({
     userId:{
