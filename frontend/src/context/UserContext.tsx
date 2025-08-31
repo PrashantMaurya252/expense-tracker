@@ -48,7 +48,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (!userToken) return;
       try {
         const response = await axios.get(
-          `${import.meta.env.VITE_BACKEND_URI}/api/me`,
+          `${process.env.BACKEND_URI}/api/me`,
           { headers:{
             Authorization:`Bearer ${userToken}`
           }}
@@ -70,7 +70,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       const response = await axios.post(
-        `${import.meta.env.VITE_BACKEND_URI}/api/login`,
+        `${process.env.BACKEND_URI}/api/login`,
         { email, password }
       );
       if (response.data.success) {
