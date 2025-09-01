@@ -37,12 +37,14 @@ import {
   PaginationNext,
   PaginationPrevious,
 } from "@/components/ui/pagination";
+import ExpenseModal from "@/components/ExpenseModal";
 
 const Expense = () => {
   const [fromDate, setFromDate] = React.useState<Date | undefined>(
     subMonths(new Date(), 1)
   );
   const [toDate, setToDate] = React.useState<Date | undefined>(new Date());
+  const [openModal,setOpenModal] = React.useState<boolean>(false)
 
   const invoices = [
     {
@@ -88,6 +90,10 @@ const Expense = () => {
       paymentMethod: "Credit Card",
     },
   ];
+
+  const handleSubmit = async()=>{
+    console.log("formSubmitted")
+  }
 
   return (
     <div className="flex flex-col w-full px-4 py-6 md:px-8 lg:px-12">
@@ -167,7 +173,7 @@ const Expense = () => {
 
           {/* Add Expense */}
           <div className="flex flex-col gap-1 justify-end items-center">
-            <Button className="w-full sm:w-auto">Add Expense</Button>
+            <Button className="w-full sm:w-auto" onClick={()=>setOpenModal(true)}>Add Expense</Button>
           </div>
         </div>
       </div>
@@ -234,6 +240,7 @@ const Expense = () => {
           </PaginationContent>
         </Pagination>
       </div>
+      <ExpenseModal open={openModal} onClose={()=>setOpenModal(false)} onSubmit={handleSubmit}/>
     </div>
   );
 };
