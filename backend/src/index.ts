@@ -1,7 +1,7 @@
 import dotenv from "dotenv";
-import express, { ErrorRequestHandler, NextFunction, Request, Response } from "express";
+import express, {type ErrorRequestHandler,type NextFunction,type Request,type Response } from "express";
 import cors from "cors";
-import connectToDB from "./utils/db";
+import connectToDB from "./utils/db.ts";
 import helmet from "helmet";
 import ExpressMongoSanitize from "express-mongo-sanitize";
 import xss from "xss-clean";
@@ -11,7 +11,8 @@ import morgan from 'morgan'
 import createHttpError from "http-errors";
 import http from 'http'
 import { Server } from "socket.io";
-import { errorHandler } from "./middlewares/errorHandler";
+import { errorHandler } from "./middlewares/errorHandler.ts";
+import authRoutes from './routes/auth.ts'
 
 dotenv.config();
 
@@ -38,6 +39,7 @@ app.use(express.json());
 app.use(helmet());
 app.use(ExpressMongoSanitize());
 app.use(xss());
+app.use('/api/auth',authRoutes)
 
 app.use(
   rateLimit({

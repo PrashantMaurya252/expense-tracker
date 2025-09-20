@@ -1,6 +1,6 @@
-import { Request, Response } from "express";
+import {type Request,type Response } from "express";
 import User from "../models/userModal.ts";
-import { AppError } from "../utils/AppError";
+import { AppError } from "../utils/AppError.ts";
 import { z } from "zod";
 import nodemailer from "nodemailer";
 import { OAuth2Client } from "google-auth-library";
