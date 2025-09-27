@@ -15,9 +15,14 @@ import {
 } from "@/components/ui/form"
 import { Input } from "@/components/ui/input"
 import { useRouter } from "next/navigation"
+import { useState } from "react"
+import { toast } from "sonner"
+import axios from "axios"
 
 export default function Login() {
+  const BACKEND_URI = process.env.NEXT_PUBLIC_BACKEND_URI;
   const router = useRouter()
+  const [loading,setLoading] = useState(false)
 
   const formSchema = z.object({
     email: z.string().email("Please enter a valid email"),
@@ -33,7 +38,26 @@ export default function Login() {
   })
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `${BACKEND_URI}/auth/email-login`,
+        values
+      );
+
+      console.log(response)
+      if (response.data.success) {
+        toast("Login Successful")
+        router.push("/expenses");
+        return
+      } 
+      toast(response.data.message || "Login Failed")
+    } catch (error: any) {
+      console.log("login error", error);
+      toast(error.response.data.message || error.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (

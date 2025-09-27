@@ -25,9 +25,9 @@ import { Textarea } from "@/components/ui/textarea";
 const expenseSchema = z.object({
   title: z.string().min(1, "Title is required"),
   amount: z
-    .string()
-    .min(1, "Amount is required")
-    .refine((val) => !isNaN(Number(val)), "Amount must be a number"),
+    .number(),
+    // .min(1, "Amount is required")
+    // .refine((val) => !isNaN(Number(val)), "Amount must be a number"),
   category: z.string(),
   description: z.string().optional(),
 });
@@ -54,8 +54,8 @@ export default function ExpenseModal({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
       title: "",
-      amount: "",
-      category: undefined,
+      amount: undefined,
+      category: "",
       description: "",
     },
   });
@@ -93,7 +93,7 @@ export default function ExpenseModal({
             control={control}
             render={({ field }) => (
               <div>
-                <Input type="number" placeholder="Amount" {...field} />
+                <Input type="number" placeholder="Amount" {...field} value={field.value} onChange={(e)=>field.onChange(Number(e.target.value))}/>
                 {errors.amount && (
                   <p className="text-red-500 text-sm">{errors.amount.message}</p>
                 )}
@@ -107,7 +107,7 @@ export default function ExpenseModal({
             control={control}
             render={({ field }) => (
               <div className="w-full">
-                <Select onValueChange={field.onChange} defaultValue={field.value} >
+                <Select onValueChange={field.onChange} defaultValue={field.value} value={field.value ?? ""}>
                   <SelectTrigger className="w-full">
                     <SelectValue placeholder="Select Category" />
                   </SelectTrigger>

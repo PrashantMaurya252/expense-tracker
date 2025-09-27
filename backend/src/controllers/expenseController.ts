@@ -1,6 +1,6 @@
 import { z } from "zod"
 import { AppError } from "../utils/AppError.ts";
-import { Request, Response } from "express";
+import {type Request,type Response } from "express";
 import Expense from '../models/expenseModal.ts';
 import dayjs from "dayjs";
 import {Parser} from 'json2csv'
@@ -48,6 +48,8 @@ const updateExpenseSchema =z.object({
     amount:z.number().gt(0),
     category:categoryEnum
 }).partial()
+
+
 export const updateExpense=async(req:Request,res:Response)=>{
     try {
         const userId = req.user!.userId

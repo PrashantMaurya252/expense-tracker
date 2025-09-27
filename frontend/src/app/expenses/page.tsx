@@ -38,6 +38,7 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import ExpenseModal from "@/components/ExpenseModal";
+import {addExpenseAPI} from "@/utils/api"
 
 const Expense = () => {
   const [fromDate, setFromDate] = React.useState<Date | undefined>(
@@ -91,14 +92,23 @@ const Expense = () => {
     },
   ];
 
-  const handleSubmit = async()=>{
+  type ExpensePayload ={
+    title:string,
+    amount:number,
+    category:string,
+    description?:string
+  }
+
+  const handleSubmit = async(data:ExpensePayload):Promise<void>=>{
+    console.log(data)
+    const response = await addExpenseAPI(data)
     console.log("formSubmitted")
   }
 
   return (
     <div className="flex flex-col w-full px-4 py-6 md:px-8 lg:px-12">
       {/* Filters Section */}
-      <div className="w-full bg-white dark:bg-neutral-900 shadow-md rounded-2xl p-4 md:p-6 mb-6">
+      <div className="flex w-full bg-white dark:bg-neutral-900 shadow-md rounded-2xl p-4 md:p-6 mb-6 justify-between">
         <h3 className="text-lg font-semibold mb-4">Filters</h3>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-5 gap-4">
           {/* From Date */}
@@ -152,10 +162,11 @@ const Expense = () => {
           </div>
 
           {/* Total Expense */}
-          <div className="flex flex-col gap-1">
+          {/* <div className="flex flex-col gap-1">
             <label className="text-sm font-medium">Total Expense</label>
             <span className="text-lg font-semibold text-primary">5000</span>
-          </div>
+          </div> */}
+          
 
           {/* Order */}
           <div className="flex flex-col gap-1">
@@ -172,8 +183,16 @@ const Expense = () => {
           </div>
 
           {/* Add Expense */}
+          
+        </div>
+
+        <div className="flex gap-2">
           <div className="flex flex-col gap-1 justify-end items-center">
-            <Button className="w-full sm:w-auto" onClick={()=>setOpenModal(true)}>Add Expense</Button>
+            <Button className="w-full sm:w-auto cursor-pointer" onClick={()=>setOpenModal(true)}>Add Expense</Button>
+          </div>
+
+          <div className="flex flex-col gap-1 justify-end items-center">
+            <Button className="w-full sm:w-auto cursor-pointer">Download as CSV</Button>
           </div>
         </div>
       </div>

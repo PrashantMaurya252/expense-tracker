@@ -13,6 +13,7 @@ import http from 'http'
 import { Server } from "socket.io";
 import { errorHandler } from "./middlewares/errorHandler.ts";
 import authRoutes from './routes/auth.ts'
+import expenseRoutes  from './routes/expense.ts'
 
 dotenv.config();
 
@@ -33,13 +34,17 @@ io.on("connection",(socket)=>{
 })
 
 export {io}
-app.use(errorHandler as ErrorRequestHandler)
-app.use(cors());
+
+app.use(cors({
+  origin: "http://localhost:3000", // frontend
+  credentials: true,
+}));
 app.use(express.json());
 app.use(helmet());
 app.use(ExpressMongoSanitize());
 app.use(xss());
 app.use('/api/auth',authRoutes)
+app.use('/api/expense',expenseRoutes)
 
 app.use(
   rateLimit({
@@ -68,9 +73,11 @@ if(process.env.NODE_ENV !== 'production'){
 
 app.use(morgan('combined',{stream:{write:(msg:string)=>logger.info(msg.trim())}}))
 
-app.use((req,res,next)=>{
-    next(createHttpError(404,"Not Found"))
-})
+app.use(errorHandler as ErrorRequestHandler)
+
+// app.use((req,res,next)=>{
+//     next(createHttpError(404,"Not Found"))
+// })
 
 app.use((err:any,req:Request,res:Response,next:NextFunction)=>{
     logger.error(err.stack || err)

@@ -5,6 +5,6 @@ const router = express.Router()
 
 router.post('/email-login',userEmailSignIn)
 router.post('/email-signup',userEmailSignUp)
-router.post('/')
+// router.post('/')
 
 export default router

@@ -4,6 +4,7 @@ import { AppError } from "../utils/AppError.ts";
 import { z } from "zod";
 import nodemailer from "nodemailer";
 import { OAuth2Client } from "google-auth-library";
+import { nextTick } from "process";
 
 const signUpSchema = z.object({
   name: z.string().min(1, "name is required"),
@@ -16,17 +17,25 @@ export const userEmailSignUp = async (req: Request, res: Response):Promise<void>
     const parsed = signUpSchema.safeParse(req.body);
     if (!parsed.success) {
       const errors = parsed.error.format();
-      throw new AppError("Validation failed", 404, errors);
+      // console.log("error",errors)
+       res.status(400).json({success:false,status:400,message:"Validation Failed"})
+       return
+      // throw new AppError("Validation failed", 404, errors);
     }
     const { name, email, password } = parsed.data;
     const isEmailExist = await User.findOne({ email });
     if (isEmailExist && !isEmailExist.googleId) {
-      throw new AppError("This email already exist, try another email", 403);
+      console.log("This email already exist, try another email")
+       res.status(400).json({success:false,status:400,message:"This email already exist, try another email"})
+       return
+      // throw new AppError("This email already exist, try another email", 403);
     } else if (isEmailExist && isEmailExist.googleId) {
-      throw new AppError(
-        "This Email is registered with Google,Please login with google",
-        403
-      );
+       res.status(400).json({success:false,status:400,message:"This email already exist, try another email"})
+       return
+      // throw new AppError(
+      //   "This Email is registered with Google,Please login with google",
+      //   403
+      // );
     }
 
     const newUser = await User.create({
@@ -48,7 +57,11 @@ export const userEmailSignUp = async (req: Request, res: Response):Promise<void>
       },
     });
   } catch (error: any) {
-    throw new AppError("userEmail Signup Error", 500, error.message);
+    console.log("signup Error",error.message)
+    // throw new AppError("userEmail Signup Error", 500, error.message);
+      res.status(500).json({success:false,status:500,message:"Internal Server Error"})
+    //  res.json({status:400,message:"SignUp Failed",success:false})
+    // next()
   }
 };
 
@@ -79,25 +92,33 @@ export const userEmailSignIn = async (req: Request, res: Response):Promise<void>
 
     if (!parsed.success) {
       const errors = parsed.error.format();
-      throw new AppError("login validation failed", 400, errors);
+      // throw new AppError("login validation failed", 400, errors);
+      res.status(400).json({success:false,status:400,message:"Validation Failed"})
+      return
     }
 
     const { email, password } = parsed.data;
 
     const user = await User.findOne({ email });
     if (!user) {
-      throw new AppError("Invalid credentials", 400);
+      // throw new AppError("Invalid credentials", 400);
+      res.status(400).json({success:false,status:400,message:"Invalid Credentials"})
+      return
     }
     if (user && user.googleId) {
-      throw new AppError(
-        "This email is already present with Google, Please login with google",
-        403
-      );
+      // throw new AppError(
+      //   "This email is already present with Google, Please login with google",
+      //   403
+      // );
+      res.status(403).json({success:false,status:403,message:"This email is already present with Google, Please login with google"})
+      return
     }
 
     const checkPassword = await user.checkPassword(password);
     if (!checkPassword) {
-      throw new AppError("Invalid credentials", 400);
+      // throw new AppError("Invalid credentials", 400);
+      res.status(400).json({success:false,status:400,message:"Invalid Credentials"})
+      return
     }
 
     const token = await user?.generateToken();
@@ -113,7 +134,8 @@ export const userEmailSignIn = async (req: Request, res: Response):Promise<void>
       },
     });
   } catch (error: any) {
-    throw new AppError("userEmail Login Error", 500, error.message);
+    // throw new AppError("userEmail Login Error", 500, error.message);
+    res.status(500).json({success:false,status:500,message:"userEmail Login Error"})
   }
 };
 

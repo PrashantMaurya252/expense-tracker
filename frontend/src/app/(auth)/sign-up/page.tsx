@@ -1,10 +1,10 @@
-"use client"
+"use client";
 
-import { zodResolver } from "@hookform/resolvers/zod"
-import { useForm } from "react-hook-form"
-import { z } from "zod"
+import { zodResolver } from "@hookform/resolvers/zod";
+import { useForm } from "react-hook-form";
+import { z } from "zod";
 
-import { Button } from "@/components/ui/button"
+import { Button } from "@/components/ui/button";
 import {
   Form,
   FormControl,
@@ -12,28 +12,85 @@ import {
   FormItem,
   FormLabel,
   FormMessage,
-} from "@/components/ui/form"
-import { Input } from "@/components/ui/input"
-import { useRouter } from "next/navigation"
+} from "@/components/ui/form";
+import { Input } from "@/components/ui/input";
+import { useRouter } from "next/navigation";
+import { useState } from "react";
+import axios from "axios";
+import { toast } from "sonner";
 
 export default function SignUp() {
-  const router = useRouter()
+  const BACKEND_URI = process.env.NEXT_PUBLIC_BACKEND_URI;
+  const router = useRouter();
+  const [loading, setLoading] = useState(false);
+
+  // const [formData,setFormData] = useState({
+  //   email:"",
+  //   password:""
+  // })
+
+  // const [formDataError,setFormDataError] = useState({
+  //   email:"",
+  //   password:""
+  // })
 
   const formSchema = z.object({
+    name: z.string(),
     email: z.string().email("Please enter a valid email"),
     password: z.string().min(6, "Password must be at least 6 characters"),
-  })
+  });
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
+      name: "",
       email: "",
       password: "",
     },
-  })
+  });
+
+  // const handleOnChange=(name:string,value:string):void=>{
+
+  //   if(name === "email" || name === "password"){
+  //        if(value === ""){
+  //         setFormDataError((prev)=>({
+  //           ...prev,
+  //           [name]:"These fields are required"
+  //         }))
+  //        }
+  //   }
+  //        setFormData((prev)=>({
+  //         ...prev,
+  //         [name]:value
+  //        }))
+  // }
+
+  // const handleSubmit=async()=>{
+  //   if(Object.values(formDataError).some((item)=>item !== "")) return
+  //   console.log(formData)
+  // }
 
   async function onSubmit(values: z.infer<typeof formSchema>) {
-    console.log(values)
+    setLoading(true);
+    try {
+      const response = await axios.post(
+        `${BACKEND_URI}/auth/email-signup`,
+        values
+      );
+
+      console.log(response)
+      if (response.data.success) {
+        toast("User Created Successfully")
+        router.push("/sign-in");
+        return
+      } 
+      toast(response.data.message || "SignUp Failed")
+    } catch (error: any) {
+      console.log("signup error", error);
+      toast(error.response.data.message || error.message);
+    } finally {
+      setLoading(false);
+    }
   }
 
   return (
@@ -46,11 +103,26 @@ export default function SignUp() {
 
         {/* Form */}
         <Form {...form}>
-          <form
-            onSubmit={form.handleSubmit(onSubmit)}
-            className="space-y-5"
-          >
-            {/* Email Field */}
+          <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-5">
+            <FormField
+              control={form.control}
+              name="name"
+              render={({ field }) => (
+                <FormItem>
+                  <FormLabel className="text-gray-700">Name</FormLabel>
+                  <FormControl>
+                    <Input
+                      type="name"
+                      placeholder="Enter your email"
+                      className="h-11 rounded-lg border-gray-300 focus:border-blue-500 focus:ring-blue-500"
+                      {...field}
+                    />
+                  </FormControl>
+                  <FormMessage className="text-red-500 text-sm" />
+                </FormItem>
+              )}
+            />
+
             <FormField
               control={form.control}
               name="email"
@@ -70,7 +142,6 @@ export default function SignUp() {
               )}
             />
 
-            {/* Password Field */}
             <FormField
               control={form.control}
               name="password"
@@ -90,15 +161,15 @@ export default function SignUp() {
               )}
             />
 
-            {/* Submit Button */}
             <Button
               type="submit"
               className="w-full h-11 rounded-lg font-semibold bg-blue-600 hover:bg-blue-700"
+              disabled={loading}
             >
-              Sign Up
+              {loading ? "Loading" : "Sign Up"}
+              {/* Sign Up */}
             </Button>
 
-            {/* Redirect to Login */}
             <p className="text-center text-gray-600 text-sm">
               Already have an account?{" "}
               <span
@@ -112,5 +183,5 @@ export default function SignUp() {
         </Form>
       </div>
     </div>
-  )
+  );
 }
