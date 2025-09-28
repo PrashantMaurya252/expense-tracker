@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import { useState,useEffect } from "react";
 import { format, subMonths } from "date-fns";
 import { Calendar as CalendarIcon } from "lucide-react";
 
@@ -38,7 +39,8 @@ import {
   PaginationPrevious,
 } from "@/components/ui/pagination";
 import ExpenseModal from "@/components/ExpenseModal";
-import {addExpenseAPI} from "@/utils/api"
+import { callApi} from "@/utils/api"
+import { toast } from "sonner";
 
 const Expense = () => {
   const [fromDate, setFromDate] = React.useState<Date | undefined>(
@@ -46,6 +48,8 @@ const Expense = () => {
   );
   const [toDate, setToDate] = React.useState<Date | undefined>(new Date());
   const [openModal,setOpenModal] = React.useState<boolean>(false)
+  const [expenseData,setExpenseData] = useState([])
+  const  [ loading,setLoading] = useState(true)
 
   const invoices = [
     {
@@ -92,6 +96,28 @@ const Expense = () => {
     },
   ];
 
+  const fetchExpenses = async()=>{
+    try {
+      const response = await callApi("get","/expense/all-expenses")
+      console.log(response,"response")
+      if(response.success){
+        setExpenseData(response.data)
+        console.log(expenseData)
+      }else{
+        toast(response.message || "Something went wrong while fetching")
+      }
+    } catch (error:any) {
+      console.log("Fetching Expenses Error",error)
+      toast(error.message || "Internal Server Error")
+    }
+  }
+
+  useEffect(()=>{
+    fetchExpenses()
+  },[])
+
+  
+
   type ExpensePayload ={
     title:string,
     amount:number,
@@ -101,7 +127,13 @@ const Expense = () => {
 
   const handleSubmit = async(data:ExpensePayload):Promise<void>=>{
     console.log(data)
-    const response = await addExpenseAPI(data)
+    const response = await callApi("post","/expense/add-expense",data)
+    console.log(response)
+    if(response.success){
+      toast(response.message)
+    }else{
+      toast(response.success || "Something went wrong while adding expense")
+    }
     console.log("formSubmitted")
   }
 

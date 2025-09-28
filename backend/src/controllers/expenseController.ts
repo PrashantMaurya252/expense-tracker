@@ -39,8 +39,10 @@ export const addExpense = async(req:Request,res:Response)=>{
         res.status(200).json({
             success:true,
             message:"Expense created successfully",
-            expense
+            data:expense
         })
+
+        
     } catch (error:any) {
         res.status(400).json({success:false,message:"Add Expense Not Working",error:error.message})
         // throw new AppError("Add Expense Error", 500,error.message);
@@ -159,6 +161,14 @@ export const getAllExpenses = async(req:Request,res:Response)=>{
 
         const expenses = await Expense.find(filter).sort({date:-1}).skip(skip).limit(limit)
 
+        if(!expenses){
+            res.status(404).json({
+                status:404,
+                message:"Expenses not found for provided user",
+                success:false
+            })
+        }
+
         const totalCount = await Expense.countDocuments(filter)
 
         const aggregation = await Expense.aggregate([
@@ -180,8 +190,9 @@ export const getAllExpenses = async(req:Request,res:Response)=>{
             count:item.count
         }))
 
-        return res.status(200).json({
-            data:expenses,
+         res.status(200).json({
+            data:{
+                expenses,
             pagination:{
                 page,
                 limit,
@@ -189,11 +200,15 @@ export const getAllExpenses = async(req:Request,res:Response)=>{
                 totalPages:Math.ceil(totalCount/limit)
             },
             categorySummary:categorywise
+            },
+            success:true
+            
         })
 
         // const expenses = await Expense.find({userId})
     } catch (error:any) {
-        throw new AppError("getAllExpenses Error", 500,error.message);
+        res.status(500).json({status:500,success:false,message:error.message || "Internal Server Error"})
+        // throw new AppError("getAllExpenses Error", 500,error.message);
     }
 }
 

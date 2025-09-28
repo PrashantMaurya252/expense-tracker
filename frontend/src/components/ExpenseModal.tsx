@@ -50,6 +50,7 @@ export default function ExpenseModal({
     control,
     handleSubmit,
     formState: { errors },
+    reset
   } = useForm<ExpenseFormData>({
     resolver: zodResolver(expenseSchema),
     defaultValues: {
@@ -62,6 +63,7 @@ export default function ExpenseModal({
 
   const handleFormSubmit: SubmitHandler<ExpenseFormData> = (data) => {
     onSubmit(data);
+    reset()
     onClose();
   };
 
@@ -144,9 +146,15 @@ export default function ExpenseModal({
             )}
           />
 
-          <Button type="submit" className="w-full cursor-pointer">
+          <div className="w-full flex justify-end items-center gap-3">
+            <Button className=" cursor-pointer" onClick={()=>reset()}>
+            Cancel
+          </Button>
+            <Button type="submit" className=" cursor-pointer">
             Add Expense
           </Button>
+          </div>
+
         </form>
       </DialogContent>
     </Dialog>
