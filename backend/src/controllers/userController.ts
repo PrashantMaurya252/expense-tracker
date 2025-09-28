@@ -122,6 +122,13 @@ export const userEmailSignIn = async (req: Request, res: Response):Promise<void>
     }
 
     const token = await user?.generateToken();
+
+    res.cookie("authToken", token, {
+      httpOnly: process.env.NODE_ENV ==="production" ? true : false, // can't be accessed with JS
+      secure: process.env.NODE_ENV ==="production" ? true : false, // only sent over https in production
+      sameSite: process.env.NODE_ENV ==="production" ? "strict" : "lax", // prevents CSRF
+      maxAge: 24 * 60 * 60 * 1000, // 1 day in ms
+    });
      res.status(201).json({
       success: true,
       message: "User LoggedIn successfully",

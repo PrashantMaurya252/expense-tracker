@@ -51,7 +51,7 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
       if (!userToken) return;
       try {
         const response = await axios.get(
-          `${process.env.BACKEND_URI}/api/me`,
+          `${process.env.NEXT_PUBLIC_BACKEND_URI}/api/me`,
           { headers:{
             Authorization:`Bearer ${userToken}`
           }}
@@ -75,15 +75,15 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
   const login = async (email: string, password: string) => {
     try {
       const response = await axios.post(
-        `${process.env.BACKEND_URI}/api/login`,
-        { email, password }
+        `${process.env.NEXT_PUBLIC_BACKEND_URI}/auth/email-login`,
+        { email, password },{withCredentials:true}
       );
       if (typeof window !== "undefined"){
       if (response.data.success) {
-        localStorage.setItem("token", response.data.token);
-        localStorage.setItem("user", JSON.stringify(response.data.user));
-        setToken(response.data.token);
-        setUser(response.data.user);
+        localStorage.setItem("token", response.data.data.token);
+        localStorage.setItem("user", JSON.stringify(response.data.data.name));
+        setToken(response.data.data.token);
+        setUser(response.data.data.name);
         setIsLoggedIn(true);
       } else {
         setToken("");
@@ -93,8 +93,16 @@ export const UserProvider = ({ children }: { children: React.ReactNode }) => {
         localStorage.removeItem("user");
       }
     }
-    } catch (error) {
+    return {
+      success:response.data.success,
+      message:response.data.message
+    }
+    } catch (error:any) {
       console.log("Login Error", error);
+      return {
+      success:error.response.data.success || false,
+      message:error.response.data.message || error.message || "Login failed"
+    }
     }
   };
 

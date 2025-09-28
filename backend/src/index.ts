@@ -14,6 +14,7 @@ import { Server } from "socket.io";
 import { errorHandler } from "./middlewares/errorHandler.ts";
 import authRoutes from './routes/auth.ts'
 import expenseRoutes  from './routes/expense.ts'
+import cookieParser from 'cookie-parser'
 
 dotenv.config();
 
@@ -34,7 +35,7 @@ io.on("connection",(socket)=>{
 })
 
 export {io}
-
+app.use(cookieParser())
 app.use(cors({
   origin: "http://localhost:3000", // frontend
   credentials: true,
@@ -43,8 +44,8 @@ app.use(express.json());
 app.use(helmet());
 app.use(ExpressMongoSanitize());
 app.use(xss());
-app.use('/api/auth',authRoutes)
-app.use('/api/expense',expenseRoutes)
+
+
 
 app.use(
   rateLimit({
@@ -54,6 +55,9 @@ app.use(
     legacyHeaders: false,
   })
 );
+
+app.use('/api/auth',authRoutes)
+app.use('/api/expense',expenseRoutes)
 
 const logger = winston.createLogger({
     level:'info',

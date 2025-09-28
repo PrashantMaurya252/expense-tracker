@@ -5,6 +5,7 @@ import Expense from '../models/expenseModal.ts';
 import dayjs from "dayjs";
 import {Parser} from 'json2csv'
 import PDFDocument from 'pdfkit'
+import { success } from "zod/v4";
 
 
 const categoryEnum = z.enum(["Travel", "Food", "Rent&Bills", "Shopping", "Others"]);
@@ -20,11 +21,14 @@ const addExpenseSchema = z.object({
 export const addExpense = async(req:Request,res:Response)=>{
     try {
         const userId = req.user!.userId
+        console.log(userId,"USerId")
         const parsed = addExpenseSchema.safeParse(req.body)
 
         if(!parsed.success){
             const errors = parsed.error
-            throw new AppError("Something is missing", 400,errors);
+            res.status(400).json({success:false,message:"Something is missing"})
+            return
+            // throw new AppError("Something is missing", 400,errors);
         }
 
         const {title,description,category,amount} = parsed.data
@@ -38,7 +42,8 @@ export const addExpense = async(req:Request,res:Response)=>{
             expense
         })
     } catch (error:any) {
-        throw new AppError("Add Expense Error", 500,error.message);
+        res.status(400).json({success:false,message:"Add Expense Not Working",error:error.message})
+        // throw new AppError("Add Expense Error", 500,error.message);
     }
 }
 

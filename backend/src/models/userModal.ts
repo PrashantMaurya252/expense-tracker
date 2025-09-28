@@ -2,7 +2,7 @@ import mongoose, { Document } from "mongoose";
 import jwt from 'jsonwebtoken';
 import bcrypt from 'bcryptjs'
 
-export interface IUser extends Document{
+ export interface IUser extends Document{
     _id: mongoose.Types.ObjectId;
     name:string,
     email:string,
@@ -82,4 +82,5 @@ userSchema.pre('save',async function(next){
 })
 
 
-export default mongoose.model<IUser>("User",userSchema)
+const User = mongoose.model<IUser>("User",userSchema)
+export default User;
